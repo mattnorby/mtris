@@ -69,26 +69,14 @@ void setup() {
   // Initialize the Wii nunchuk
   nunchuk_setpowerpins();
   nunchuk_init();
-
-  // Initialize the random number generator
   delay(250);
   nunchuk_get_data();
+
+  // Initialize the random number generator
   randomSeed(millis());
 
   // Initialize the display
   tft.begin();
-
-  if (isInitials) {
-    drawInitialsScreen();
-  } else if (isGameOver) {
-    drawHighScoreScreen();
-  } else {
-    // Start the game
-    drawNewGameScreen();
-    initializeBoardState();
-    updateScore(0);
-    drawActivePiece(true);
-  }
 }
 
 void loop() {
@@ -154,20 +142,16 @@ void loopGameInProgress() {
 
 void loopGameOver() {
     // Cycle through splash screens
-    boolean zPressed = false;
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) bmpDraw("MTrisT~1.bmp", 0, 0);
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) delay(2000);
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) bmpDraw("Manife~1.bmp", 0, 0);
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) delay(2000);
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) drawHighScoreScreen();
-    if (nunchuk_zbutton()) zPressed = true;
-    if (!zPressed) delay(5000);
-    if (nunchuk_zbutton()) zPressed = true;
+    drawHighScoreScreen();
+    boolean zPressed = delayCheckZButton(5);
+    if (!zPressed) {
+      bmpDraw("MTrisT~1.bmp", 0, 0);
+      zPressed = delayCheckZButton(2);
+    }
+    if (!zPressed) {
+      bmpDraw("Manife~1.bmp", 0, 0);
+      zPressed = delayCheckZButton(2);
+    }
     
     // If the user pressed the Z button, start a new game
     if (zPressed) {
@@ -196,11 +180,10 @@ void loopInitials() {
       tft.print(currInits[currInitIdx++]);
       if (currInitIdx == 3) {
         updateHighScores(currInits);
-        isInitials = false;
+        isInitials = false;  // Move to the game over screens
         currInitIdx = 0;
         currInits[0] = currInits[1] = currInits[2] = ' ';
-        delay(2000);  // brief delay to show the user the letter they selected
-        drawHighScoreScreen();
+        delay(2000);  // brief delay to show the user the last letter they selected
         return;
       }
     }
@@ -268,11 +251,10 @@ void loopInitials() {
     tft.setTextColor(ILI9341_RED);
     tft.print("0");
     updateHighScores(currInits);
-    isInitials = false;
+    isInitials = false;  // Move to the game over screens
     currInitIdx = 0;
     currInits[0] = currInits[1] = currInits[2] = ' ';
     delay(1000);
-    drawHighScoreScreen();
     return;
   }
 
@@ -291,12 +273,14 @@ void loopInitials() {
   delay(50);
 }
 
-// Sleep for 4 seconds, checking back every 100 ms to see whether
+// Sleep for secDelay seconds, checking back every 100 ms to see whether
 // the user is pressing the Z button.  Return true if Z was pressed.
-boolean delayCheckZButton() {
-  for (int delayCount = 0; delayCount < 200; delayCount++) {
-    delay(20);
+boolean delayCheckZButton(const int secDelay) {
+  int maxDelayCount = 10 * secDelay;
+  for (int delayCount = 0; delayCount < maxDelayCount; delayCount++) {
+    nunchuk_get_data();
     if (nunchuk_zbutton()) return true;
+    delay(100);
   }
   return false;
 }
