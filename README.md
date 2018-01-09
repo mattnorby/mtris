@@ -25,7 +25,7 @@ The high score file (MTRISHS.TXT) and the two BMP images belong on the SD card.
 2. Connect power to the Arduino.
 
 Controls: Between games
-- Z button: Hold down on the high score screen, to start a new game
+- Z button: Hold down on any screen, to start a new game
 
 Controls: During the game
 - Joystick left/right: move piece left/right
